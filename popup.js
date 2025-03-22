@@ -57,60 +57,60 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to perform fuzzy search for a single pattern
   function fuzzySearchSingle(text, pattern) {
-    const text_lower = text.toLowerCase();
-    const pattern_lower = pattern.toLowerCase();
+    const textLower = text.toLowerCase();
+    const patternLower = pattern.toLowerCase();
 
-    if (pattern_lower.length === 0) return { matches: true, score: 0 };
-    if (pattern_lower.length > text_lower.length)
+    if (patternLower.length === 0) return { matches: true, score: 0 };
+    if (patternLower.length > textLower.length)
       return { matches: false, score: 0 };
 
     let score = 0;
-    let pattern_idx = 0;
-    let last_match_idx = -1;
-    let first_match_idx = -1;
-    let consecutive_matches = 0;
+    let patternIdx = 0;
+    let lastMatchIdx = -1;
+    let firstMatchIdx = -1;
+    let consecutiveMatches = 0;
 
     // Try to match all pattern characters in order
     for (
       let i = 0;
-      i < text_lower.length && pattern_idx < pattern_lower.length;
+      i < textLower.length && patternIdx < patternLower.length;
       i++
     ) {
-      if (charsMatch(text_lower[i], pattern_lower[pattern_idx])) {
-        if (first_match_idx === -1) first_match_idx = i;
+      if (charsMatch(textLower[i], patternLower[patternIdx])) {
+        if (firstMatchIdx === -1) firstMatchIdx = i;
 
         // Consecutive matches get bonus points
-        if (last_match_idx === i - 1) {
-          consecutive_matches++;
-          score += consecutive_matches * 2;
+        if (lastMatchIdx === i - 1) {
+          consecutiveMatches++;
+          score += consecutiveMatches * 2;
         } else {
-          consecutive_matches = 1;
+          consecutiveMatches = 1;
           score += 1;
         }
 
-        last_match_idx = i;
-        pattern_idx++;
+        lastMatchIdx = i;
+        patternIdx++;
       }
     }
 
     // Calculate final score based on various factors
-    if (pattern_idx === pattern_lower.length) {
+    if (patternIdx === patternLower.length) {
       // Prefer matches at word boundaries
-      if (first_match_idx === 0 || text_lower[first_match_idx - 1] === " ") {
-        score += pattern_lower.length * 3;
+      if (firstMatchIdx === 0 || textLower[firstMatchIdx - 1] === " ") {
+        score += patternLower.length * 3;
       }
 
       // Prefer matches closer to the start
-      score -= first_match_idx * 0.15;
+      score -= firstMatchIdx * 0.15;
 
       // Prefer shorter overall matches
-      score -= (last_match_idx - first_match_idx) * 0.08;
+      score -= (lastMatchIdx - firstMatchIdx) * 0.08;
 
       // Significant bonus for exact substring matches
-      const normalized_text = normalizeText(text);
-      const normalized_pattern = normalizeText(pattern_lower);
-      if (normalized_text.includes(normalized_pattern)) {
-        score += pattern_lower.length * 4;
+      const normalizedText = normalizeText(text);
+      const normalizedPattern = normalizeText(patternLower);
+      if (normalizedText.includes(normalizedPattern)) {
+        score += patternLower.length * 4;
       }
 
       return {
@@ -193,28 +193,51 @@ document.addEventListener("DOMContentLoaded", () => {
     let positions = new Set();
 
     patterns.forEach((pattern) => {
-      let text_lower = text.toLowerCase();
-      let pattern_lower = pattern.toLowerCase();
-      let pattern_idx = 0;
+      let textLower = text.toLowerCase();
+      let patternLower = pattern.toLowerCase();
+      let patternIdx = 0;
 
       for (
         let i = 0;
-        i < text_lower.length && pattern_idx < pattern_lower.length;
+        i < textLower.length && patternIdx < patternLower.length;
         i++
       ) {
-        if (charsMatch(text_lower[i], pattern_lower[pattern_idx])) {
+        if (charsMatch(textLower[i], patternLower[patternIdx])) {
           positions.add(i);
-          pattern_idx++;
+          patternIdx++;
         }
       }
     });
 
     // Convert text to array to handle multi-byte characters
     let chars = [...text];
-    positions = Array.from(positions).sort((a, b) => b - a);
+    positions = Array.from(positions).sort((a, b) => a - b);
 
+    // Group positions into ranges
+    let ranges = [];
+    let currentRange = null;
     positions.forEach((pos) => {
-      chars[pos] = `<span class="highlight">${chars[pos]}</span>`;
+      if (currentRange === null) {
+        currentRange = { start: pos, end: pos };
+      } else if (pos === currentRange.end + 1) {
+        currentRange.end = pos;
+      } else {
+        ranges.push(currentRange);
+        currentRange = { start: pos, end: pos };
+      }
+    });
+    if (currentRange !== null) {
+      ranges.push(currentRange);
+    }
+
+    // Apply highlights starting from the end to avoid index issues
+    ranges.reverse().forEach(({ start, end }) => {
+      const highlightedText = chars.slice(start, end + 1).join("");
+      chars.splice(
+        start,
+        end - start + 1,
+        `<span class="highlight">${highlightedText}</span>`
+      );
     });
 
     return chars.join("");

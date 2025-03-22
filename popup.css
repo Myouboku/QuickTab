@@ -1,3 +1,27 @@
+:root {
+  /* Light theme variables */
+  --background-color: white;
+  --text-color: #333;
+  --border-color: #e0e0e0;
+  --hover-color: #f0f0f0;
+  --selected-color: #e8e8e8;
+  --accent-color: #0060df;
+  --no-results-color: #666;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark theme variables */
+    --background-color: #2b2a33;
+    --text-color: #fbfbfe;
+    --border-color: #52525e;
+    --hover-color: #42414d;
+    --selected-color: #42414d;
+    --accent-color: #00ddff;
+    --no-results-color: #cfcfd8;
+  }
+}
+
 body {
   width: 400px;
   min-height: 100px;
@@ -9,14 +33,16 @@ body {
     Cantarell, sans-serif;
   display: flex;
   flex-direction: column;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 .search-container {
   position: sticky;
   top: 0;
-  background: white;
+  background: var(--background-color);
   padding: 10px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
   z-index: 1;
   flex-shrink: 0;
 }
@@ -24,15 +50,17 @@ body {
 #search-input {
   width: 100%;
   padding: 8px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--border-color);
   border-radius: 4px;
   font-size: 14px;
   outline: none;
   box-sizing: border-box;
+  background-color: var(--background-color);
+  color: var(--text-color);
 }
 
 #search-input:focus {
-  border-color: #0060df;
+  border-color: var(--accent-color);
 }
 
 #tabs-container {
@@ -56,17 +84,17 @@ body {
 }
 
 .tab-item:hover {
-  background-color: #f0f0f0;
+  background-color: var(--hover-color);
 }
 
 .tab-item:focus {
-  background-color: #e8e8e8;
-  border-color: #0060df;
+  background-color: var(--selected-color);
+  border-color: var(--accent-color);
 }
 
 .tab-item-selected {
-  background-color: #e8e8e8;
-  border-color: #0060df;
+  background-color: var(--selected-color);
+  border-color: var(--accent-color);
 }
 
 .tab-favicon {
@@ -84,7 +112,7 @@ body {
 }
 
 .match-highlight {
-  color: #0060df;
+  color: var(--accent-color);
   font-weight: 500;
 }
 
@@ -93,6 +121,14 @@ body {
 }
 
 .highlight {
-  color: #0060df;
+  color: var(--accent-color);
   font-weight: bold;
+}
+
+/* Style for the "No results" message */
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: var(--no-results-color);
+  font-style: italic;
 }

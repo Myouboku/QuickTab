@@ -242,6 +242,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       tabElement.appendChild(title);
 
+      // Add audio indicator if the tab is playing audio or is muted
+      if (tab.audible || tab.mutedInfo?.muted) {
+        const audioIndicator = document.createElement("div");
+        audioIndicator.className =
+          "audio-indicator" + (tab.mutedInfo?.muted ? " muted" : "");
+        tabElement.appendChild(audioIndicator);
+      }
+
       // Add click handler to switch to the tab
       tabElement.addEventListener("click", () => {
         chrome.tabs.update(tab.id, { active: true });

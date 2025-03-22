@@ -367,11 +367,34 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".tab-item:not(.hidden)")
     );
     const currentIndex = visibleItems.indexOf(selectedTabElement);
+    let searchText,
+      commandMatch,
+      partialCommand,
+      availableCommands,
+      matchingCommand,
+      newText;
 
     switch (e.key) {
       case "Tab":
-        // Block Tab key
         e.preventDefault();
+        // Handle command autocompletion
+        searchText = searchInput.value;
+        commandMatch = searchText.match(/@(\w*)$/);
+
+        if (commandMatch) {
+          partialCommand = commandMatch[1].toLowerCase();
+          availableCommands = ["pinned", "audio"];
+          matchingCommand = availableCommands.find((cmd) =>
+            cmd.startsWith(partialCommand)
+          );
+
+          if (matchingCommand) {
+            newText =
+              searchText.slice(0, -partialCommand.length) + matchingCommand;
+            searchInput.value = newText;
+            filterTabs(newText);
+          }
+        }
         break;
       case "ArrowDown":
         e.preventDefault();

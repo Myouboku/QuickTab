@@ -1,26 +1,24 @@
 {
-    "manifest_version": 3,
-    "name": "QuickTab",
-    "version": "1.0",
-    "description": "Quickly access your open tabs with a keyboard shortcut",
-    "permissions": [
-        "tabs"
-    ],
-    "action": {
-        "default_popup": "popup.html"
-    },
-    "commands": {
-        "_execute_action": {
-            "suggested_key": {
-                "default": "Ctrl+Space"
-            },
-            "description": "Open QuickTab menu"
-        }
-    },
-    "browser_specific_settings": {
-        "gecko": {
-            "id": "QuickTab@myoboku.net",
-            "strict_min_version": "109.0"
-        }
+  "manifest_version": 3,
+  "name": "QuickTab",
+  "version": "1.0",
+  "description": "Quickly access your open tabs with a keyboard shortcut",
+  "permissions": ["tabs"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Space"
+      },
+      "description": "Open QuickTab menu"
     }
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "QuickTab@myoboku.net",
+      "strict_min_version": "109.0"
+    }
+  }
 }

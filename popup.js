@@ -260,6 +260,7 @@ document.addEventListener("DOMContentLoaded", () => {
       originalTabs.push({
         element: tabElement,
         title: tab.title,
+        tabData: tab, // Store the full tab data
       });
 
       tabsList.appendChild(tabElement);
@@ -275,30 +276,51 @@ document.addEventListener("DOMContentLoaded", () => {
   // Function to filter tabs
   function filterTabs(searchText) {
     let matchedTabs = [];
+    const specialCommands = searchText.match(/@\w+/g) || [];
+    const textWithoutCommands = searchText.replace(/@\w+/g, "").trim();
 
-    originalTabs.forEach(({ element, title }) => {
-      if (!searchText.trim()) {
-        // If no search query, keep all tabs in their original order
+    originalTabs.forEach(({ element, title, tabData }) => {
+      let matches = true;
+
+      // Handle special commands
+      specialCommands.forEach((command) => {
+        switch (command.toLowerCase()) {
+          case "@audio":
+            if (!(tabData.audible || tabData.mutedInfo?.muted)) {
+              matches = false;
+            }
+            break;
+          // Add more commands here in the future
+        }
+      });
+
+      // If no text search and no special commands, show all tabs
+      if (!textWithoutCommands && specialCommands.length === 0) {
         matchedTabs.push({
           element,
           score: 0,
           title,
         });
-      } else {
-        // If search is active, filter and score the tabs
-        const { matches, score } = fuzzySearch(title, searchText);
-        if (matches) {
-          matchedTabs.push({
-            element,
-            score,
-            title,
-          });
-        }
+      }
+      // Otherwise, apply text search if there is any text to search
+      else if (
+        matches &&
+        (!textWithoutCommands ||
+          fuzzySearch(title, textWithoutCommands).matches)
+      ) {
+        const score = textWithoutCommands
+          ? fuzzySearch(title, textWithoutCommands).score
+          : 0;
+        matchedTabs.push({
+          element,
+          score,
+          title,
+        });
       }
     });
 
-    // Sort by score only if there's an active search
-    if (searchText.trim()) {
+    // Sort by score only if there's a text search
+    if (textWithoutCommands) {
       matchedTabs.sort((a, b) => b.score - a.score);
     }
 
@@ -313,15 +335,14 @@ document.addEventListener("DOMContentLoaded", () => {
       noResultsElement.className = "no-results";
       noResultsElement.textContent = "No results :(";
       noResultsElement.style.cssText =
-        "text-align: center; padding: 20px; color: #666; font-style: italic;";
+        "text-align: center; padding: 20px; color: var(--no-results-color); font-style: italic;";
       tabsList.appendChild(noResultsElement);
     } else {
       matchedTabs.forEach(({ element, title }) => {
         const titleElement = element.querySelector(".tab-title");
-        titleElement.innerHTML = searchText.trim()
-          ? highlightMatches(title, searchText)
+        titleElement.innerHTML = textWithoutCommands
+          ? highlightMatches(title, textWithoutCommands)
           : title;
-        // Append the element in its new position
         tabsList.appendChild(element);
       });
 

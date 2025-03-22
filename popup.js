@@ -161,7 +161,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // Calculate ideal position to center the element
         const targetScroll = Math.max(
           0,
-          elementTop - viewportHeight / 2 + tabElement.offsetHeight / 2,
+          elementTop - viewportHeight / 2 + tabElement.offsetHeight / 2
         );
 
         // Apply smooth scrolling
@@ -217,15 +217,29 @@ document.addEventListener("DOMContentLoaded", () => {
       const tabElement = document.createElement("div");
       tabElement.className = "tab-item";
 
-      const favicon = document.createElement("img");
-      favicon.className = "tab-favicon";
-      favicon.src = tab.favIconUrl || "default-favicon.png";
+      const faviconContainer = document.createElement("div");
+      faviconContainer.className = "tab-favicon";
+
+      if (tab.favIconUrl) {
+        const favicon = document.createElement("img");
+        // can't get the favicon for about:addons for some reason
+        if (tab.url === "about:addons") {
+          // favicon.src = "chrome://mozapps/skin/extensions/extension.svg";
+          favicon.src = "chrome://global/skin/icons/settings.svg";
+        } else {
+          favicon.src = tab.favIconUrl;
+        }
+        favicon.style.width = "100%";
+        favicon.style.height = "100%";
+        faviconContainer.appendChild(favicon);
+      }
+
+      tabElement.appendChild(faviconContainer);
 
       const title = document.createElement("span");
       title.className = "tab-title";
       title.textContent = tab.title;
 
-      tabElement.appendChild(favicon);
       tabElement.appendChild(title);
 
       // Add click handler to switch to the tab
@@ -316,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Handle keyboard navigation
   document.addEventListener("keydown", (e) => {
     const visibleItems = Array.from(
-      document.querySelectorAll(".tab-item:not(.hidden)"),
+      document.querySelectorAll(".tab-item:not(.hidden)")
     );
     const currentIndex = visibleItems.indexOf(selectedTabElement);
 

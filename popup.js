@@ -2,7 +2,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabsList = document.getElementById("tabs-list");
   const searchInput = document.getElementById("search-input");
   let selectedTabElement = null;
-  let originalTabs = []; // Store original tabs
+  let originalTabs = [];
+  let lastSearch = null;
+
+  // Restore last search
+  chrome.storage.local.get(["lastSearch"], (result) => {
+    if (result.lastSearch) {
+      lastSearch = result.lastSearch;
+      searchInput.value = lastSearch;
+      searchInput.select();
+    }
+  });
 
   // Function to normalize text (remove accents and convert to lowercase)
   function normalizeText(text) {
@@ -12,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/[\u0300-\u036f]/g, ""); // Remove diacritics
   }
 
-  // Character equivalence map for common French accents
+  // Character equivalence map for common accents
   // Might not include every single character, but it should be enough coverage
   const charEquivalents = {
     e: ["e", "é", "è", "ê", "ë"],
@@ -67,7 +77,6 @@ document.addEventListener("DOMContentLoaded", () => {
       i++
     ) {
       if (charsMatch(text_lower[i], pattern_lower[pattern_idx])) {
-        // First match
         if (first_match_idx === -1) first_match_idx = i;
 
         // Consecutive matches get bonus points
@@ -148,6 +157,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (tabElement) {
       tabElement.classList.add("tab-item-selected");
 
+      // Save current search
+      chrome.storage.local.set({ lastSearch: searchInput.value });
+
       // Wait for next frame to ensure dimensions are calculated
       requestAnimationFrame(() => {
         const container = document.getElementById("tabs-container");
@@ -210,7 +222,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Get all open tabs
   chrome.tabs.query({ currentWindow: true }).then((tabs) => {
-    // Find the active tab
     const activeTab = tabs.find((tab) => tab.active);
 
     tabs.forEach((tab) => {
@@ -222,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (tab.favIconUrl) {
         const favicon = document.createElement("img");
-        // can't get the favicon for about:addons for some reason
+        // Can't get the favicon for about:addons for some reason
         if (tab.url === "about:addons") {
           // favicon.src = "chrome://mozapps/skin/extensions/extension.svg";
           favicon.src = "chrome://global/skin/icons/settings.svg";
@@ -271,6 +282,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Focus on the search input
     searchInput.focus();
+
+    // Filter tabs with last search if it exists
+    if (lastSearch) filterTabs(lastSearch);
   });
 
   // Function to filter tabs
@@ -295,7 +309,6 @@ document.addEventListener("DOMContentLoaded", () => {
               matches = false;
             }
             break;
-          // Add more commands here in the future
         }
       });
 
@@ -325,14 +338,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Sort by score only if there's a text search
-    if (textWithoutCommands) {
-      matchedTabs.sort((a, b) => b.score - a.score);
-    }
+    if (textWithoutCommands) matchedTabs.sort((a, b) => b.score - a.score);
 
     // Clear the tabs list
-    while (tabsList.firstChild) {
-      tabsList.removeChild(tabsList.firstChild);
-    }
+    while (tabsList.firstChild) tabsList.removeChild(tabsList.firstChild);
 
     // Show matched tabs in their new order
     if (matchedTabs.length === 0) {

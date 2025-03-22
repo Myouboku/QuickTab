@@ -290,6 +290,11 @@ document.addEventListener("DOMContentLoaded", () => {
               matches = false;
             }
             break;
+          case "@pinned":
+            if (!tabData.pinned) {
+              matches = false;
+            }
+            break;
           // Add more commands here in the future
         }
       });

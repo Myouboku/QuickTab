@@ -7,7 +7,7 @@ Inspired by [fzf](https://github.com/junegunn/fzf).
 ## Features
 
 - Fuzzy search through your open tabs
-- Filters tags
+- Filter tags
 - Light and dark themes
 
 ## Installation
@@ -26,9 +26,22 @@ Inspired by [fzf](https://github.com/junegunn/fzf).
 3. Use arrow keys to navigate through results
 4. Press `Enter` to switch to the selected tab
 
-### Special Commands
+### Special tags
 
 - `@audio` - Show only tabs playing audio
 - `@pinned` - Show only pinned tabs
 
-You can combine these commands with text search, for example: `@audio music` will show tabs playing audio that match "music".
+You can combine these tags with text search, for example: `@pinned music` will show pinned tabs that match "music".
+
+## TODO (maybe)
+
+- [ ] More @tags
+- [ ] Settings
+  - [ ] Change shortcut
+  - [ ] Change accent color
+  - [ ] Force light/dark theme
+  - [ ] Disabling animations
+  - [ ] Change dimensions
+- [ ] Optimisations (better code in general if I'm not too lazy)
+- [ ] Upload to store
+- [ ] Chrome version

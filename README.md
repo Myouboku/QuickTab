@@ -12,7 +12,7 @@ Inspired by [fzf](https://github.com/junegunn/fzf).
 
 ## Installation
 
-1. Go to the latest release
+1. Go to the [latest release](https://github.com/Myouboku/QuickTab/releases/latest)
 2. Download the `.xpi` file
 3. Go to `about:addons`
 4. Click on the cogwheel

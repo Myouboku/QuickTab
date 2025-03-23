@@ -1,7 +1,8 @@
 # QuickTab
 
 Firefox extension that helps you quickly switch between tabs using keyboard shortcuts and fuzzy search.
-Inspired par [fzf](https://github.com/junegunn/fzf).
+
+Inspired by [fzf](https://github.com/junegunn/fzf).
 
 ## Features
 

@@ -11,8 +11,8 @@ Inspired par [fzf](https://github.com/junegunn/fzf).
 
 ## Installation
 
-1. Get the latest release
-2. Extract it
+1. Go to the latest release
+2. Download the `.xpi` file
 3. Go to `about:addons`
 4. Click on the cogwheel
 5. Click on "Install from file"

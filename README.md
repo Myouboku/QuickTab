@@ -11,14 +11,12 @@ Inspired par [fzf](https://github.com/junegunn/fzf).
 
 ## Installation
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/Myouboku/QuickTab.git
-   ```
-2. Open Firefox and go to `about:debugging`
-3. Click on "This Firefox" in the left sidebar
-4. Click "Load Temporary Add-on"
-5. Select the `manifest.json` file from the QuickTab directory
+1. Get the latest release
+2. Extract it
+3. Go to `about:addons`
+4. Click on the cogwheel
+5. Click on "Install from file"
+6. Select the `.xpi` file
 
 ## Usage
 

@@ -331,6 +331,15 @@ document.addEventListener("DOMContentLoaded", () => {
               matches = false;
             }
             break;
+          case "@url":
+            // If @url is specified, search in URLs instead of titles
+            if (
+              textWithoutCommands &&
+              !fuzzySearch(tabData.url, textWithoutCommands).matches
+            ) {
+              matches = false;
+            }
+            break;
         }
       });
 
@@ -340,22 +349,28 @@ document.addEventListener("DOMContentLoaded", () => {
           element,
           score: 0,
           title,
+          tabData,
         });
       }
       // Otherwise, apply text search if there is any text to search
-      else if (
-        matches &&
-        (!textWithoutCommands ||
-          fuzzySearch(title, textWithoutCommands).matches)
-      ) {
-        const score = textWithoutCommands
-          ? fuzzySearch(title, textWithoutCommands).score
-          : 0;
-        matchedTabs.push({
-          element,
-          score,
-          title,
-        });
+      else if (matches) {
+        const searchTarget = specialCommands.includes("@url")
+          ? tabData.url
+          : title;
+        if (
+          !textWithoutCommands ||
+          fuzzySearch(searchTarget, textWithoutCommands).matches
+        ) {
+          const score = textWithoutCommands
+            ? fuzzySearch(searchTarget, textWithoutCommands).score
+            : 0;
+          matchedTabs.push({
+            element,
+            score,
+            title,
+            tabData,
+          });
+        }
       }
     });
 
@@ -374,11 +389,13 @@ document.addEventListener("DOMContentLoaded", () => {
         "text-align: center; padding: 20px; color: var(--no-results-color); font-style: italic;";
       tabsList.appendChild(noResultsElement);
     } else {
-      matchedTabs.forEach(({ element, title }) => {
+      matchedTabs.forEach(({ element, title, tabData }) => {
         const titleElement = element.querySelector(".tab-title");
+        const isUrlSearch = specialCommands.includes("@url");
+        const displayText = isUrlSearch ? tabData.url : title;
         titleElement.innerHTML = textWithoutCommands
-          ? highlightMatches(title, textWithoutCommands)
-          : title;
+          ? highlightMatches(displayText, textWithoutCommands)
+          : displayText;
         tabsList.appendChild(element);
       });
 
@@ -414,7 +431,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (commandMatch) {
           partialCommand = commandMatch[1].toLowerCase();
-          availableCommands = ["pinned", "audio"];
+          availableCommands = ["pinned", "audio", "url"];
           matchingCommand = availableCommands.find((cmd) =>
             cmd.startsWith(partialCommand)
           );

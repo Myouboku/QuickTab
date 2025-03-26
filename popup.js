@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedTabElement = null;
   let originalTabs = [];
   let lastSearch = null;
+  let domainsList = new Set(); // Store unique domains
 
   // Restore last search
   chrome.storage.local.get(["lastSearch"], (result) => {
@@ -243,6 +244,26 @@ document.addEventListener("DOMContentLoaded", () => {
     return chars.join("");
   }
 
+  // Function to extract domain from URL
+  function extractDomain(url) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.hostname.replace(/^www\./, "");
+    } catch {
+      return url; // Fallback for invalid URLs
+    }
+  }
+
+  // Function to update domains list
+  function updateDomainsList() {
+    domainsList.clear();
+    originalTabs.forEach(({ tabData }) => {
+      if (tabData.url) {
+        domainsList.add(extractDomain(tabData.url));
+      }
+    });
+  }
+
   // Get all open tabs
   chrome.tabs.query({ currentWindow: true }).then((tabs) => {
     const activeTab = tabs.find((tab) => tab.active);
@@ -302,6 +323,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (tab.id === activeTab.id) selectTab(tabElement);
     });
 
+    // Update domains list after loading tabs
+    updateDomainsList();
+
     // Focus on the search input
     searchInput.focus();
 
@@ -313,7 +337,17 @@ document.addEventListener("DOMContentLoaded", () => {
   function filterTabs(searchText) {
     let matchedTabs = [];
     const specialCommands = searchText.match(/@\w+/g) || [];
-    const textWithoutCommands = searchText.replace(/@\w+/g, "").trim();
+    let textWithoutCommands = searchText.replace(/@\w+/g, "").trim();
+
+    // For @domain, we separate the domain from the search terms
+    let domainFilter = null;
+    let searchTerms = textWithoutCommands;
+
+    if (specialCommands.includes("@domain") && textWithoutCommands) {
+      const parts = textWithoutCommands.split(/\s+/);
+      domainFilter = parts[0];
+      searchTerms = parts.slice(1).join(" ");
+    }
 
     originalTabs.forEach(({ element, title, tabData }) => {
       let matches = true;
@@ -332,12 +366,19 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             break;
           case "@url":
-            // If @url is specified, search in URLs instead of titles
             if (
               textWithoutCommands &&
               !fuzzySearch(tabData.url, textWithoutCommands).matches
             ) {
               matches = false;
+            }
+            break;
+          case "@domain":
+            if (domainFilter) {
+              const domain = extractDomain(tabData.url);
+              if (!fuzzySearch(domain, domainFilter).matches) {
+                matches = false;
+              }
             }
             break;
         }
@@ -354,15 +395,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       // Otherwise, apply text search if there is any text to search
       else if (matches) {
-        const searchTarget = specialCommands.includes("@url")
-          ? tabData.url
-          : title;
-        if (
-          !textWithoutCommands ||
-          fuzzySearch(searchTarget, textWithoutCommands).matches
-        ) {
-          const score = textWithoutCommands
-            ? fuzzySearch(searchTarget, textWithoutCommands).score
+        let searchTarget = title;
+        if (specialCommands.includes("@url")) {
+          searchTarget = tabData.url;
+        }
+        // If we have search terms or if we don't use @domain
+        if (!searchTerms || fuzzySearch(searchTarget, searchTerms).matches) {
+          const score = searchTerms
+            ? fuzzySearch(searchTarget, searchTerms).score
             : 0;
           matchedTabs.push({
             element,
@@ -375,7 +415,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Sort by score only if there's a text search
-    if (textWithoutCommands) matchedTabs.sort((a, b) => b.score - a.score);
+    if (searchTerms) matchedTabs.sort((a, b) => b.score - a.score);
 
     // Clear the tabs list
     while (tabsList.firstChild) tabsList.removeChild(tabsList.firstChild);
@@ -392,9 +432,10 @@ document.addEventListener("DOMContentLoaded", () => {
       matchedTabs.forEach(({ element, title, tabData }) => {
         const titleElement = element.querySelector(".tab-title");
         const isUrlSearch = specialCommands.includes("@url");
-        const displayText = isUrlSearch ? tabData.url : title;
-        titleElement.innerHTML = textWithoutCommands
-          ? highlightMatches(displayText, textWithoutCommands)
+        let displayText = isUrlSearch ? tabData.url : title;
+
+        titleElement.innerHTML = searchTerms
+          ? highlightMatches(displayText, searchTerms)
           : displayText;
         tabsList.appendChild(element);
       });
@@ -415,23 +456,34 @@ document.addEventListener("DOMContentLoaded", () => {
       document.querySelectorAll(".tab-item:not(.hidden)")
     );
     const currentIndex = visibleItems.indexOf(selectedTabElement);
-    let searchText,
-      commandMatch,
-      partialCommand,
-      availableCommands,
-      matchingCommand,
-      newText;
+    let searchText = searchInput.value;
+    let commandMatch = searchText.match(/@(\w*)$/);
+    let partialCommand, availableCommands, matchingCommand, newText;
+    const domainMatch = searchText.match(/@domain\s+(\w*)/);
 
     switch (e.key) {
       case "Tab":
         e.preventDefault();
-        // Handle command autocompletion
-        searchText = searchInput.value;
-        commandMatch = searchText.match(/@(\w*)$/);
+        if (domainMatch) {
+          // Autocompletion for domains
+          const partialDomain = domainMatch[1].toLowerCase();
+          const matchingDomain = Array.from(domainsList).find((domain) =>
+            domain.toLowerCase().startsWith(partialDomain)
+          );
 
-        if (commandMatch) {
+          if (matchingDomain) {
+            const beforeDomain = searchText.slice(
+              0,
+              searchText.lastIndexOf(partialDomain)
+            );
+            newText = beforeDomain + matchingDomain;
+            searchInput.value = newText;
+            filterTabs(newText);
+          }
+        } else if (commandMatch) {
+          // Autocompletion for commands
           partialCommand = commandMatch[1].toLowerCase();
-          availableCommands = ["pinned", "audio", "url"];
+          availableCommands = ["pinned", "audio", "url", "domain"];
           matchingCommand = availableCommands.find((cmd) =>
             cmd.startsWith(partialCommand)
           );

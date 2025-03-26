@@ -439,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (matchingCommand) {
             newText =
               searchText.slice(0, -partialCommand.length) + matchingCommand;
-            searchInput.value = newText;
+            searchInput.value = newText + " ";
             filterTabs(newText);
           }
         }

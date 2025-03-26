@@ -258,7 +258,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const favicon = document.createElement("img");
         // Can't get the favicon for about:addons for some reason
         if (tab.url === "about:addons") {
-          // favicon.src = "chrome://mozapps/skin/extensions/extension.svg";
           favicon.src = "chrome://global/skin/icons/settings.svg";
         } else {
           favicon.src = tab.favIconUrl;

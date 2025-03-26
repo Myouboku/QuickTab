@@ -1,8 +1,13 @@
 {
   "name": "quicktab",
-  "version": "1.0.0",
-  "main": "popup.js",
+  "version": "1.2.0",
+  "description": "Quickly access your open tabs with a keyboard shortcut",
+  "type": "module",
   "scripts": {
+    "build": "npm run build:firefox && npm run build:chrome",
+    "build:firefox": "node build.js firefox",
+    "build:chrome": "node build.js chrome",
+    "lint": "eslint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -16,10 +21,9 @@
     "url": "https://github.com/Myouboku/QuickTab/issues"
   },
   "homepage": "https://github.com/Myouboku/QuickTab#readme",
-  "description": "",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
-    "eslint": "^9.23.0",
+    "eslint": "^8.56.0",
     "globals": "^16.0.0",
     "prettier": "3.5.3"
   }

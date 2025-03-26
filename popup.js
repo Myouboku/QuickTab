@@ -16,13 +16,94 @@ document.addEventListener("DOMContentLoaded", () => {
   let lastSearch = null;
   let domainsList = new Set(); // Store unique domains
 
-  // Restore last search
+  // Function to create a tab element
+  function createTabElement(tab) {
+    const tabElement = document.createElement("div");
+    tabElement.className = "tab-item";
+
+    const faviconContainer = document.createElement("div");
+    faviconContainer.className = "tab-favicon";
+
+    if (tab.favIconUrl) {
+      const favicon = document.createElement("img");
+      // Can't get the favicon for about:addons for some reason
+      if (tab.url === "about:addons") {
+        favicon.src = "chrome://global/skin/icons/settings.svg";
+      } else {
+        favicon.src = tab.favIconUrl;
+      }
+      favicon.style.width = "100%";
+      favicon.style.height = "100%";
+      faviconContainer.appendChild(favicon);
+    }
+
+    tabElement.appendChild(faviconContainer);
+
+    const title = document.createElement("span");
+    title.className = "tab-title";
+    title.textContent = tab.title;
+
+    tabElement.appendChild(title);
+
+    // Add audio indicator if the tab is playing audio or is muted
+    if (tab.audible || tab.mutedInfo?.muted) {
+      const audioIndicator = document.createElement("div");
+      audioIndicator.className =
+        "audio-indicator" + (tab.mutedInfo?.muted ? " muted" : "");
+      tabElement.appendChild(audioIndicator);
+    }
+
+    // Add click handler to switch to the tab
+    tabElement.addEventListener("click", () => {
+      chrome.tabs.update(tab.id, { active: true }, () => {
+        window.close();
+      });
+    });
+
+    return tabElement;
+  }
+
+  // Function to load tabs
+  function loadTabs() {
+    chrome.tabs.query({ currentWindow: true }, (tabs) => {
+      const activeTab = tabs.find((tab) => tab.active);
+      originalTabs = [];
+
+      tabs.forEach((tab) => {
+        const tabElement = createTabElement(tab);
+
+        // Store in original tabs array
+        originalTabs.push({
+          element: tabElement,
+          title: tab.title,
+          tabData: tab,
+        });
+
+        tabsList.appendChild(tabElement);
+
+        // Select the active tab
+        if (tab.id === activeTab.id) selectTab(tabElement);
+      });
+
+      // Update domains list after loading tabs
+      updateDomainsList();
+
+      // Filter tabs with last search if it exists
+      if (lastSearch) filterTabs(lastSearch);
+    });
+  }
+
+  // Restore last search and load tabs
   chrome.storage.local.get(["lastSearch"], (result) => {
+    // Focus on the search input
+    searchInput.focus();
+
     if (result.lastSearch) {
       lastSearch = result.lastSearch;
       searchInput.value = lastSearch;
       searchInput.select();
     }
+    loadTabs();
   });
 
   // Function to normalize text (remove accents and convert to lowercase)
@@ -273,75 +354,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-
-  // Get all open tabs
-  chrome.tabs.query({ currentWindow: true }).then((tabs) => {
-    const activeTab = tabs.find((tab) => tab.active);
-
-    tabs.forEach((tab) => {
-      const tabElement = document.createElement("div");
-      tabElement.className = "tab-item";
-
-      const faviconContainer = document.createElement("div");
-      faviconContainer.className = "tab-favicon";
-
-      if (tab.favIconUrl) {
-        const favicon = document.createElement("img");
-        // Can't get the favicon for about:addons for some reason
-        if (tab.url === "about:addons") {
-          favicon.src = "chrome://global/skin/icons/settings.svg";
-        } else {
-          favicon.src = tab.favIconUrl;
-        }
-        favicon.style.width = "100%";
-        favicon.style.height = "100%";
-        faviconContainer.appendChild(favicon);
-      }
-
-      tabElement.appendChild(faviconContainer);
-
-      const title = document.createElement("span");
-      title.className = "tab-title";
-      title.textContent = tab.title;
-
-      tabElement.appendChild(title);
-
-      // Add audio indicator if the tab is playing audio or is muted
-      if (tab.audible || tab.mutedInfo?.muted) {
-        const audioIndicator = document.createElement("div");
-        audioIndicator.className =
-          "audio-indicator" + (tab.mutedInfo?.muted ? " muted" : "");
-        tabElement.appendChild(audioIndicator);
-      }
-
-      // Add click handler to switch to the tab
-      tabElement.addEventListener("click", () => {
-        chrome.tabs.update(tab.id, { active: true });
-        window.close();
-      });
-
-      // Store in original tabs array
-      originalTabs.push({
-        element: tabElement,
-        title: tab.title,
-        tabData: tab, // Store the full tab data
-      });
-
-      tabsList.appendChild(tabElement);
-
-      // Select the active tab
-      if (tab.id === activeTab.id) selectTab(tabElement);
-    });
-
-    // Update domains list after loading tabs
-    updateDomainsList();
-
-    // Focus on the search input
-    searchInput.focus();
-
-    // Filter tabs with last search if it exists
-    if (lastSearch) filterTabs(lastSearch);
-  });
 
   // Function to filter tabs
   function filterTabs(searchText) {

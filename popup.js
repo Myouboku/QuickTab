@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded", () => {
+  // Load custom accent color
+  chrome.storage.sync.get(["accentColor"], (result) => {
+    if (result.accentColor) {
+      document.documentElement.style.setProperty(
+        "--accent-color",
+        result.accentColor
+      );
+    }
+  });
+
   const tabsList = document.getElementById("tabs-list");
   const searchInput = document.getElementById("search-input");
   let selectedTabElement = null;

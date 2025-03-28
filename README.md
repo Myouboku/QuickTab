@@ -25,7 +25,7 @@ Inspired by [fzf](https://github.com/junegunn/fzf).
 
 1. Clone the repo
 2. Go to `chrome://extensions/`
-3. Enble developer mode
+3. Enable developer mode
 4. Click on "Load unpacked extension"
 5. Select the QuickTab directory
 

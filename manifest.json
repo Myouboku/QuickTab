@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "QuickTab",
-  "version": "1.2",
+  "version": "1.3",
   "description": "Quickly access your open tabs with a keyboard shortcut",
   "permissions": ["tabs", "storage"],
   "action": {

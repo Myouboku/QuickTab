@@ -1,3 +1,5 @@
 dist
 node_modules
 .amo-upload-uuid
+.env
+release

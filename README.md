@@ -30,6 +30,8 @@ Inspired by [fzf](https://github.com/junegunn/fzf).
 
 - `@audio` - Show only tabs playing audio
 - `@pinned` - Show only pinned tabs
+- `@url` - Search in URLs instead of tab titles
+- `@domain` - Filter tabs by domain name
 
 You can combine these tags with text search, for example: `@pinned music` will show pinned tabs that match "music".
 
@@ -37,11 +39,10 @@ You can combine these tags with text search, for example: `@pinned music` will s
 
 - [ ] More @tags
 - [ ] Settings
-  - [ ] Change shortcut
-  - [ ] Change accent color
+  - [x] Change accent color
   - [ ] Force light/dark theme
   - [ ] Disabling animations
   - [ ] Change dimensions
 - [ ] Optimisations (better code in general if I'm not too lazy)
 - [ ] Upload to store
-- [ ] Chrome version
+- [x] Chrome version
